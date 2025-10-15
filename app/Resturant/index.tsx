@@ -1,4 +1,3 @@
-// RestaurantDetailsScreen.js
 import restaurantService from '@/services/restaurants';
 import reviewService from '@/services/review';
 import { useTheme } from '@/store/useTheme';
@@ -764,3 +763,4 @@ export default function Index() {
 		</View>
 	);
 }
+
