@@ -2,6 +2,7 @@ export const lightColors = {
 	// Primary Colors
 	primary: '#ff7f50', // Coral/Salmon
 	primaryLight: '#fff0e6', // Very light peach
+	tagPrimary: '#ff7f50', // Coral/Salmon for tags and highlights
 
 	// Background Colors
 	background: '#fffaf2', // Off-white/Creamy background
@@ -98,6 +99,7 @@ export const darkColors = {
 	// Primary Colors (Maintain similar hue for consistency)
 	primary: '#ff7f50', // Coral/Salmon
 	primaryLight: '#cc6640', // Darker primary for hover/active states
+	tagPrimary: '#fff', // Same coral/salmon for tags and highlights
 
 	// Background Colors (Inverted: Darker shades)
 	background: '#121212', // Very dark gray for main background
