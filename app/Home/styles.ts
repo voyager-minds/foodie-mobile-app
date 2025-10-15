@@ -3,6 +3,13 @@ import { StyleSheet } from 'react-native';
 
 export const homeStyles = (colors: ColorsType) =>
 	StyleSheet.create({
+		topBar: {
+			display: 'flex',
+			flexDirection: 'row',
+			justifyContent: 'space-between',
+			alignItems: 'center',
+		},
+
 		container: {
 			flex: 1,
 			backgroundColor: colors.background,
@@ -34,6 +41,7 @@ export const homeStyles = (colors: ColorsType) =>
 
 		// 🔍 Search Section
 		searchContainer: {
+			width: '87%',
 			marginBottom: 15,
 			paddingHorizontal: 15,
 		},
@@ -261,6 +269,7 @@ export const homeStyles = (colors: ColorsType) =>
 			fontSize: 18,
 			fontWeight: '700',
 			marginBottom: 4,
+			color: colors.textPrimary,
 		},
 		city: {
 			fontSize: 14,
@@ -291,7 +300,7 @@ export const homeStyles = (colors: ColorsType) =>
 		},
 		tag: {
 			backgroundColor: colors.primaryLight,
-			color: colors.primary,
+			color: colors.tagPrimary,
 			borderRadius: 15,
 			paddingVertical: 4,
 			paddingHorizontal: 10,
