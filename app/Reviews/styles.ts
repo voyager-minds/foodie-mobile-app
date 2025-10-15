@@ -110,6 +110,7 @@ export const reviewsStyles = (colors: ColorsType) =>
 		},
 		reviewerName: {
 			fontWeight: '700',
+			color: colors.textPrimary,
 		},
 		reviewDate: {
 			color: colors.textLight,
@@ -225,6 +226,7 @@ export const reviewsStyles = (colors: ColorsType) =>
 			fontSize: 18,
 			fontWeight: '700',
 			marginTop: 8,
+			color: colors.textPrimary,
 		},
 		emptySubtitle: {
 			color: colors.textSecondary,
@@ -267,6 +269,7 @@ export const reviewsStyles = (colors: ColorsType) =>
 		modalTitle: {
 			fontWeight: '700',
 			fontSize: 18,
+			color: colors.textPrimary,
 		},
 		reviewInput: {
 			borderWidth: 1,
@@ -286,6 +289,7 @@ export const reviewsStyles = (colors: ColorsType) =>
 		ratingLabel: {
 			marginRight: 12,
 			fontWeight: '600',
+			color: colors.textPrimary,
 		},
 		starRating: {
 			flexDirection: 'row',
