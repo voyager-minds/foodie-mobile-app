@@ -4,19 +4,20 @@ import { Ionicons } from '@expo/vector-icons';
 import { useCameraPermissions } from 'expo-camera';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import {
-	ActivityIndicator,
-	Alert,
-	FlatList,
-	Image,
-	Keyboard,
-	Modal,
-	ScrollView,
-	Text,
-	TextInput,
-	TouchableOpacity,
-	View,
-} from 'react-native';
+import
+	{
+		ActivityIndicator,
+		Alert,
+		FlatList,
+		Image,
+		Keyboard,
+		Modal,
+		ScrollView,
+		Text,
+		TextInput,
+		TouchableOpacity,
+		View,
+	} from 'react-native';
 import Camera from '../../components/Camera/Camera';
 import { useTheme } from '../../store/useTheme';
 import { reviewsStyles } from './styles';
@@ -110,7 +111,6 @@ export default function ReviewsScreen() {
 
 	// Debug: Log state changes
 	useEffect(() => {
-		console.log('showCamera state changed:', showCamera);
 	}, [showCamera]);
 
 	// replies text state keyed by review id
@@ -142,17 +142,12 @@ export default function ReviewsScreen() {
 					restaurantId,
 					page
 				);
-				console.log('Reviews fetched:', res.data);
 
 				// Handle the API response structure: { page: 1, items: [...] }
 				const reviewsData = res.data;
 				const reviewItems = Array.isArray(reviewsData.items)
 					? reviewsData.items
 					: [];
-
-				console.log('API Response:', reviewsData);
-				console.log('Parsed review items:', reviewItems);
-				console.log('Review items length:', reviewItems.length);
 
 				// Validate each review item
 				const validReviews = reviewItems.filter(
@@ -164,7 +159,6 @@ export default function ReviewsScreen() {
 						typeof item.ratings === 'object'
 				);
 
-				console.log('Valid reviews:', validReviews.length);
 				setReviews(validReviews);
 				setReviewsPage(reviewsData.page || page);
 				setReviewsTotalPages(
@@ -191,7 +185,6 @@ export default function ReviewsScreen() {
 			return;
 		}
 
-		console.log('Loading reviews for restaurant:', restaurantId);
 		fetchRestaurant();
 		fetchReviews(1);
 		setLoading(false);
@@ -241,7 +234,6 @@ export default function ReviewsScreen() {
 
 	// Handle camera opening with permission check
 	const openCamera = async () => {
-		console.log('Opening camera...');
 
 		try {
 			if (!cameraPermission) {
@@ -916,7 +908,6 @@ export default function ReviewsScreen() {
 						<Camera
 							onImageCaptured={handleImageCaptured}
 							onClose={() => {
-								console.log('Camera close button pressed');
 								setShowCamera(false);
 							}}
 						/>
