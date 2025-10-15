@@ -18,7 +18,7 @@ export const restaurantStyles = (colors: ColorsType) =>
 			borderRadius: 12,
 			elevation: 3,
 		},
-		restaurantName: { fontSize: 20, fontWeight: '700', marginBottom: 8 },
+		restaurantName: { fontSize: 20, fontWeight: '700', marginBottom: 8, color: colors.textPrimary },
 		metaRow: {
 			flexDirection: 'row',
 			justifyContent: 'space-between',
@@ -38,7 +38,7 @@ export const restaurantStyles = (colors: ColorsType) =>
 			marginRight: 6,
 			marginBottom: 6,
 		},
-		tagText: { color: colors.primary, fontSize: 12 },
+		tagText: { color: colors.tagPrimary, fontSize: 12 },
 
 		section: { marginTop: 12, paddingHorizontal: 12 },
 		sectionHeader: {
@@ -47,7 +47,7 @@ export const restaurantStyles = (colors: ColorsType) =>
 			alignItems: 'center',
 			marginBottom: 8,
 		},
-		sectionTitle: { fontSize: 18, fontWeight: '700' },
+		sectionTitle: { fontSize: 18, fontWeight: '700', color: colors.textPrimary },
 		sectionCount: { color: colors.textTertiary },
 		viewAllBtn: {
 			flexDirection: 'row',
@@ -83,7 +83,7 @@ export const restaurantStyles = (colors: ColorsType) =>
 		availabilityText: { color: colors.white, marginLeft: 6, fontSize: 12 },
 
 		menuContent: { flex: 1, padding: 10, justifyContent: 'space-between' },
-		menuName: { fontWeight: '700', fontSize: 16 },
+		menuName: { fontWeight: '700', fontSize: 16, color: colors.textPrimary },
 		menuDesc: { color: colors.textSecondary, marginTop: 4 },
 		menuFooter: {
 			flexDirection: 'row',
@@ -102,7 +102,7 @@ export const restaurantStyles = (colors: ColorsType) =>
 
 		// Empty
 		emptyState: { alignItems: 'center', paddingVertical: 20 },
-		emptyTitle: { fontSize: 18, fontWeight: '700', marginTop: 8 },
+		emptyTitle: { fontSize: 18, fontWeight: '700', marginTop: 8, color: colors.textPrimary },
 		emptySubtitle: { color: colors.textSecondary, marginTop: 6 },
 
 		// Reviews
@@ -123,7 +123,7 @@ export const restaurantStyles = (colors: ColorsType) =>
 			alignItems: 'center',
 		},
 		avatarText: { fontWeight: '700', color: colors.primary },
-		reviewerName: { fontWeight: '700' },
+		reviewerName: { fontWeight: '700', color: colors.textPrimary },
 		reviewDate: { color: colors.textLight, fontSize: 12 },
 		reviewRating: { alignItems: 'flex-end' },
 		ratingNumber: { color: colors.primary, fontWeight: '700' },
