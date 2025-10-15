@@ -3,17 +3,18 @@ import { useTheme } from '@/store/useTheme';
 import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import { useEffect, useState } from 'react';
-import {
-	ActivityIndicator,
-	FlatList,
-	Image,
-	Keyboard,
-	Text,
-	TextInput,
-	TouchableOpacity,
-	TouchableWithoutFeedback,
-	View,
-} from 'react-native';
+import
+	{
+		ActivityIndicator,
+		FlatList,
+		Image,
+		Keyboard,
+		Text,
+		TextInput,
+		TouchableOpacity,
+		TouchableWithoutFeedback,
+		View,
+	} from 'react-native';
 import { getImageUrl } from '../../utils/imageUtils';
 import { homeStyles } from './styles';
 
@@ -43,7 +44,6 @@ export default function Index() {
 		setLoading(true);
 		try {
 			const response = await restaurantService.fetchAllRestaurants();
-			console.log('Fetched restaurants:', response.data);
 			setAllRestaurants(response.data);
 			setRestaurants(response.data);
 		} catch (error) {
@@ -183,7 +183,7 @@ export default function Index() {
 					asChild>
 					<TouchableOpacity
 						style={styles.detailsButton}
-						onPress={() => console.log('Navigating to restaurant:', item.id)}>
+					>
 						<Text style={styles.detailsText}>View Details ➜</Text>
 					</TouchableOpacity>
 				</Link>
@@ -202,7 +202,7 @@ export default function Index() {
 				</View>
 			)}
 
-			{/* 💡 THEME TOGGLE SECTION 💡 */}
+				{/* 💡 THEME TOGGLE SECTION 💡 */}
 			<TouchableOpacity
 				onPress={toggleTheme}
 				style={styles.themeToggleButton}
