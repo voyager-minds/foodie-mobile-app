@@ -21,6 +21,7 @@ import
 import Camera from '../../components/Camera/Camera';
 import { useTheme } from '../../store/useTheme';
 import { reviewsStyles } from './styles';
+import React from 'react';
 
 // Utility function to calculate overall rating
 const calculateOverallRating = (ratings: Ratings): number => {

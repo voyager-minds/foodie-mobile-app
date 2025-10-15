@@ -1,33 +1,34 @@
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
-import { useEffect, useRef } from 'react';
-import
-	{
-		Animated,
-		Dimensions,
-		StatusBar,
-		Text,
-		TouchableOpacity,
-		View,
-	} from 'react-native';
+import { Ionicons } from "@expo/vector-icons"
+import { LinearGradient } from "expo-linear-gradient"
+import { useRouter } from "expo-router"
+import React, { useEffect, useRef } from "react"
+import useAuth from "../hooks/useAuth"
+import {
+	Animated,
+	StatusBar,
+	Text,
+	TouchableOpacity,
+	View,
+	Alert,
+} from "react-native"
+import { useTheme } from "@/store/useTheme"
+import indexStyles from "./styles"
 
-import { useTheme } from '@/store/useTheme';
-import { indexStyles } from './styles';
-
-const { width, height } = Dimensions.get('window');
+// width/height not used currently
 
 export default function LoginScreen() {
-	const { colors, isDarkMode, toggleTheme } = useTheme();
-	const styles = indexStyles(colors);
+	const { colors, isDarkMode, toggleTheme } = useTheme()
+	const styles = indexStyles(colors)
 
-	const router = useRouter();
-	const fadeAnim = useRef(new Animated.Value(0)).current;
-	const slideAnim = useRef(new Animated.Value(50)).current;
-	const scaleAnim = useRef(new Animated.Value(0.8)).current;
-	const buttonScale = useRef(new Animated.Value(1)).current;
-	const floatAnim = useRef(new Animated.Value(0)).current;
-	const pulseAnim = useRef(new Animated.Value(1)).current;
+	const { isAuthenticated, signIn, signOut } = useAuth();
+
+	const router = useRouter()
+	const fadeAnim = useRef(new Animated.Value(0)).current
+	const slideAnim = useRef(new Animated.Value(50)).current
+	const scaleAnim = useRef(new Animated.Value(0.8)).current
+	const buttonScale = useRef(new Animated.Value(1)).current
+	const floatAnim = useRef(new Animated.Value(0)).current
+	const pulseAnim = useRef(new Animated.Value(1)).current
 
 	useEffect(() => {
 		Animated.parallel([
@@ -46,7 +47,7 @@ export default function LoginScreen() {
 				duration: 800,
 				useNativeDriver: true,
 			}),
-		]).start();
+		]).start()
 
 		// Floating animation for logo
 		Animated.loop(
@@ -62,7 +63,7 @@ export default function LoginScreen() {
 					useNativeDriver: true,
 				}),
 			])
-		).start();
+		).start()
 
 		// Pulse animation for features
 		setTimeout(() => {
@@ -79,9 +80,9 @@ export default function LoginScreen() {
 						useNativeDriver: true,
 					}),
 				])
-			).start();
-		}, 1000);
-	}, []);
+			).start()
+		}, 1000)
+	}, [])
 
 	const handleButtonPress = (callback: () => void) => {
 		Animated.sequence([
@@ -95,21 +96,18 @@ export default function LoginScreen() {
 				duration: 100,
 				useNativeDriver: true,
 			}),
-		]).start();
+		]).start()
 
-		setTimeout(callback, 150);
-	};
+		setTimeout(callback, 150)
+	}
 
 	return (
 		<View style={styles.container}>
-			<StatusBar
-				barStyle='light-content'
-				backgroundColor='#ff7f50'
-			/>
+			<StatusBar barStyle="light-content" backgroundColor="#ff7f50" />
 
 			{/* Background Gradient */}
 			<LinearGradient
-				colors={['#ff7f50', '#ff6b35', '#ff5722']}
+				colors={["#ff7f50", "#ff6b35", "#ff5722"]}
 				style={styles.backgroundGradient}
 				start={{ x: 0, y: 0 }}
 				end={{ x: 1, y: 1 }}
@@ -128,19 +126,17 @@ export default function LoginScreen() {
 						opacity: fadeAnim,
 						transform: [{ translateY: slideAnim }, { scale: scaleAnim }],
 					},
-				]}>
+				]}
+			>
 				{/* Logo/Icon Section */}
 				<Animated.View
 					style={[
 						styles.logoContainer,
 						{ transform: [{ translateY: floatAnim }] },
-					]}>
+					]}
+				>
 					<View style={styles.logoCircle}>
-						<Ionicons
-							name='restaurant'
-							size={60}
-							color='#ff7f50'
-						/>
+						<Ionicons name="restaurant" size={60} color="#ff7f50" />
 					</View>
 					<Text style={styles.logoText}>Foodie</Text>
 					<Text style={styles.tagline}>Discover Amazing Flavors</Text>
@@ -159,35 +155,40 @@ export default function LoginScreen() {
 					<Animated.View style={{ transform: [{ scale: buttonScale }] }}>
 						<TouchableOpacity
 							style={styles.loginButton}
-							onPress={() => handleButtonPress(() => router.push('/Home'))}
-							activeOpacity={0.8}>
+							onPress={() =>
+								handleButtonPress(async () => {
+									try {
+										await signIn()
+										router.push("/Home")
+									} catch (err) {
+										console.error("Sign in error", err)
+										Alert.alert(
+											"Sign in failed",
+											(err as Error)?.message || "Unable to sign in"
+										)
+									}
+								})
+							}
+							activeOpacity={0.8}
+						>
 							<LinearGradient
-								colors={['#ffffff', '#f8f8f8']}
+								colors={["#ffffff", "#f8f8f8"]}
 								style={styles.buttonGradient}
 								start={{ x: 0, y: 0 }}
-								end={{ x: 1, y: 1 }}>
-								<Ionicons
-									name='log-in-outline'
-									size={20}
-									color='#ff7f50'
-								/>
+								end={{ x: 1, y: 1 }}
+							>
+								<Ionicons name="log-in-outline" size={20} color="#ff7f50" />
 								<Text style={styles.loginText}>Get Started</Text>
 							</LinearGradient>
 						</TouchableOpacity>
 					</Animated.View>
 
-					<TouchableOpacity
-						style={styles.signupButton}
-						activeOpacity={0.8}>
+					<TouchableOpacity style={styles.signupButton} activeOpacity={0.8}>
 						<Text style={styles.signupText}>Create Account</Text>
-						<Ionicons
-							name='arrow-forward'
-							size={16}
-							color='#ffffff'
-						/>
+						<Ionicons name="arrow-forward" size={16} color="#ffffff" />
 					</TouchableOpacity>
 				</View>
 			</Animated.View>
 		</View>
-	);
+	)
 }

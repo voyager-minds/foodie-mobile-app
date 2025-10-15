@@ -3,7 +3,7 @@ import { Dimensions, StyleSheet } from 'react-native';
 
 const { height } = Dimensions.get('window');
 
-export const indexStyles = (colors: ColorsType) => StyleSheet.create({
+const indexStyles = (colors: ColorsType) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.primary,
@@ -166,3 +166,5 @@ export const indexStyles = (colors: ColorsType) => StyleSheet.create({
     textAlign: "center",
   },
 });
+
+export default indexStyles;

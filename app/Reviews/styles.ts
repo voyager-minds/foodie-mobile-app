@@ -1,7 +1,7 @@
 import { ColorsType } from '@/constants/colours';
 import { StyleSheet } from 'react-native';
 
-export const reviewsStyles = (colors: ColorsType) =>
+const reviewsStyles = (colors: ColorsType) =>
 	StyleSheet.create({
 		screen: { flex: 1, backgroundColor: colors.background },
 		centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
@@ -441,3 +441,5 @@ export const reviewsStyles = (colors: ColorsType) =>
 			borderRadius: 10,
 		},
 	});
+
+export default reviewsStyles;

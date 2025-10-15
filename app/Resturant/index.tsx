@@ -19,6 +19,7 @@ import {
 } from 'react-native';
 import { getImageUrl } from '../../utils/imageUtils';
 import { restaurantStyles } from './styles';
+import React from 'react';
 
 // Utility function to calculate overall rating
 const calculateOverallRating = (ratings: Ratings): number => {
@@ -327,10 +328,10 @@ export default function Index() {
               {formatMenuPrice(item.priceCents, item.currency)}
             </Text>
             <TouchableOpacity
-              style={styles.viewDetailsBtn}
+              style={restaurantStyles.viewDetailsBtn}
               onPress={() => viewMenuItemDetails(item)}
             >
-              <Text style={styles.viewDetailsText}>View Details</Text>
+              <Text style={restaurantStyles.viewDetailsText}>View Details</Text>
             </TouchableOpacity>
           </View> */}
 				</View>

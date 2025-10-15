@@ -1,7 +1,7 @@
 import { ColorsType } from '@/constants/colours';
 import { StyleSheet } from 'react-native';
 
-export const homeStyles = (colors: ColorsType) =>
+const homeStyles = (colors: ColorsType) =>
 	StyleSheet.create({
 		topBar: {
 			display: 'flex',
@@ -337,3 +337,5 @@ export const homeStyles = (colors: ColorsType) =>
 			marginTop: 5,
 		},
 	});
+
+export default homeStyles;

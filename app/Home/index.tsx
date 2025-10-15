@@ -17,6 +17,7 @@ import
 	} from 'react-native';
 import { getImageUrl } from '../../utils/imageUtils';
 import { homeStyles } from './styles';
+import React from 'react';
 
 interface Restaurant {
 	id: string;

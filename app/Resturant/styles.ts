@@ -1,7 +1,7 @@
 import { ColorsType } from '@/constants/colours';
 import { StyleSheet } from 'react-native';
 
-export const restaurantStyles = (colors: ColorsType) =>
+const restaurantStyles = (colors: ColorsType) =>
 	StyleSheet.create({
 		screen: { flex: 1, backgroundColor: colors.background },
 		scroll: { flex: 1 },
@@ -281,3 +281,5 @@ export const restaurantStyles = (colors: ColorsType) =>
 			paddingHorizontal: 8,
 		},
 	});
+
+export default restaurantStyles;
