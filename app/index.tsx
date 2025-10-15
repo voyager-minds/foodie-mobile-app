@@ -2,14 +2,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef } from 'react';
-import {
-	Animated,
-	Dimensions,
-	StatusBar,
-	Text,
-	TouchableOpacity,
-	View,
-} from 'react-native';
+import
+	{
+		Animated,
+		Dimensions,
+		StatusBar,
+		Text,
+		TouchableOpacity,
+		View,
+	} from 'react-native';
 
 import { useTheme } from '@/store/useTheme';
 import { indexStyles } from './styles';
