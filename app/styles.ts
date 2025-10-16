@@ -1,9 +1,9 @@
+import { ColorsType } from '@/constants/colours';
 import { Dimensions, StyleSheet } from 'react-native';
-import { colors } from '../constants/colors';
 
 const { height } = Dimensions.get('window');
 
-export const indexStyles = StyleSheet.create({
+export const indexStyles = (colors: ColorsType) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.primary,
