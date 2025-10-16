@@ -5,7 +5,7 @@ const getlRestaurantReviewById = async (id: string) => {
         const response = await http.get(`/reviews?restaurantId=${id}`);
         return response;
     } catch (error) {
-        console.error("Error fetching restaurants:", error);
+        console.error("Error fetching restaurants reviews y id:", error);
         throw error;
     }
 }
@@ -38,7 +38,7 @@ const addRestaurantReview = async (id, data: any) => {
         const response = await http.post(`/reviews`, payload);
         return response;
     } catch (error) {
-        console.error("Error fetching restaurants:", error);
+        console.error("Error adding restaurant reviews:", error);
         throw error;
     }
 }
@@ -48,7 +48,7 @@ const getPreSignedUrl = async () => {
         const response = await http.get(`/admin/uploads/presign`);
         return response;
     } catch (error) {
-        console.error("Error fetching restaurants:", error);
+        console.error("Error getting presigned url:", error);
         throw error;
     }
 }
@@ -59,7 +59,7 @@ const uploadImg = async (url) => {
         const response = await http.get(url);
         return response;
     } catch (error) {
-        console.error("Error fetching restaurants:", error);
+        console.error("Error uploading image:", error);
         throw error;
     }
 }

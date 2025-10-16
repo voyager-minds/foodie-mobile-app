@@ -15,7 +15,7 @@ const getlRestaurantById = async (id: string) => {
         const response = await http.get(`/restaurants/${id}`);
         return response;
     } catch (error) {
-        console.error("Error fetching restaurants:", error);
+        console.error("Error fetching restaurantsById:", error);
         throw error;
     }
 }
@@ -25,7 +25,7 @@ const getlRestaurantMenuById = async (id: string) => {
         const response = await http.get(`/restaurants/${id}/menu`);
         return response;
     } catch (error) {
-        console.error("Error fetching restaurant menu:", error);
+        console.error("Error fetching getlRestaurantMenuById:", error);
         throw error;
     }
 }
