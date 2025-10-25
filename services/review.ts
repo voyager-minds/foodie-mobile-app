@@ -10,16 +10,16 @@ const getlRestaurantReviewById = async (id: string) => {
     }
 }
 
-const date = new Date()
+const getCurrentDate = () => new Date().toISOString()
 
-const addRestaurantReview = async (id, data: any) => {
+const addRestaurantReview = async (id: string, data: any) => {
     const payload = {
         "id": "",
         "restaurantId": id,
         "menuItemId": "",
-        "text": data.ratings.text,
+        "text": data.text,
         "authorSub": "anonymous",
-        "createdAt": date,
+        "createdAt": getCurrentDate(),
         "localHelpful": false,
         "localHelpfulCount": 0,
         "showReplies": false,
@@ -31,14 +31,15 @@ const addRestaurantReview = async (id, data: any) => {
             "overall": data.ratings.food
         },
         "status": "PENDING",
-        "comments": []
+        "comments": [],
+        "images": data.images || null
     }
 
     try {
         const response = await http.post(`/reviews`, payload);
         return response;
     } catch (error) {
-        console.error("Error fetching restaurants:", error);
+        console.error("Error submitting review:", error);
         throw error;
     }
 }
@@ -48,20 +49,70 @@ const getPreSignedUrl = async () => {
         const response = await http.get(`/admin/uploads/presign`);
         return response;
     } catch (error) {
-        console.error("Error fetching restaurants:", error);
+        console.error("Error getting presigned URL:", error);
         throw error;
     }
 }
 
 
-const uploadImg = async (url) => {
+const convertImageToBuffer = async (imageUri: string): Promise<{ buffer: ArrayBuffer, contentType: string }> => {
     try {
-        const response = await http.get(url);
-        return response;
+        const response = await fetch(imageUri);
+        const buffer = await response.arrayBuffer();
+        const contentType = response.headers.get('content-type') || 'image/jpeg';
+        return { buffer, contentType };
     } catch (error) {
-        console.error("Error fetching restaurants:", error);
+        console.error("Error converting image to buffer:", error);
         throw error;
     }
+}
+
+const uploadImageToS3 = async (presignedUrl: string, imageBuffer: ArrayBuffer, contentType: string) => {
+    try {
+        const response = await fetch(presignedUrl, {
+            method: 'PUT',
+            body: imageBuffer,
+            headers: {
+                'Content-Type': contentType,
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`Upload failed with status: ${response.status}`);
+        }
+
+        return response;
+    } catch (error) {
+        console.error("Error uploading image:", error);
+        throw error;
+    }
+}
+
+const uploadReviewImages = async (imageUris: string[]): Promise<string[]> => {
+    if (!imageUris || imageUris.length === 0) {
+        return [];
+    }
+
+    const uploadedImageKeys: string[] = [];
+
+    for (let i = 0; i < imageUris.length; i++) {
+        const imageUri = imageUris[i];
+
+        try {
+            const presignedResponse = await getPreSignedUrl();
+            const { uploadUrl, key } = presignedResponse.data;
+
+            const { buffer, contentType } = await convertImageToBuffer(imageUri);
+            await uploadImageToS3(uploadUrl, buffer, contentType);
+
+            uploadedImageKeys.push(key);
+        } catch (error) {
+            console.error(`Error uploading image ${imageUri}:`, error);
+            throw error;
+        }
+    }
+
+    return uploadedImageKeys;
 }
 
 
@@ -70,7 +121,8 @@ const reviewService = {
     getlRestaurantReviewById,
     addRestaurantReview,
     getPreSignedUrl,
-    uploadImg
+    uploadImageToS3,
+    uploadReviewImages
 }
 
 export default reviewService;
