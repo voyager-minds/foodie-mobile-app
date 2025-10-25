@@ -3,6 +3,7 @@ import { fetchAuthSession } from '@aws-amplify/auth';
 import { Amplify } from 'aws-amplify';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
+import http from "./http";
 
 // Configure WebBrowser for OAuth
 WebBrowser.maybeCompleteAuthSession();
@@ -12,6 +13,15 @@ const extractRegionFromDomain = (domain: string): string => {
     const match = domain.match(/\.auth\.([^.]+)\.amazoncognito\.com/);
     return match ? match[1] : 'us-east-1';
 };
+
+export const createAuthLog = async (user: any) => {
+    try {
+        const response = await http.post(`/auth/logs`, user);
+        return response;
+    } catch (error: any) {
+        console.error('Failed to create auth log:', error);
+    }
+}
 
 const region = extractRegionFromDomain(AWS_CONFIG.COGNITO_DOMAIN);
 
@@ -66,7 +76,7 @@ class SimpleAuthService {
                     const urlParams = new URLSearchParams(result.url.split('?')[1]);
                     const error = urlParams.get('error');
                     const errorDescription = urlParams.get('error_description');
-                    
+
                     return {
                         success: false,
                         error: errorDescription || error || 'Authentication failed'
@@ -116,7 +126,7 @@ class SimpleAuthService {
 
         const url = `https://${AWS_CONFIG.COGNITO_DOMAIN}/oauth2/authorize?${params.toString()}`;
 
-        
+
         return url;
     }
 
@@ -129,14 +139,14 @@ class SimpleAuthService {
             // Check for authorization code or error
             if (queryParams?.code) {
                 const tokenResult = await this.exchangeCodeForTokens(queryParams.code as string);
-                
+
                 if (tokenResult.success && tokenResult.tokens) {
-                    
+
                     // Store tokens and create user object
                     currentTokens = tokenResult.tokens;
                     const user = await this.createUserFromTokens(tokenResult.tokens);
                     currentUser = user;
-                    
+
                     return {
                         success: true,
                         user
@@ -172,9 +182,9 @@ class SimpleAuthService {
     // Exchange authorization code for tokens manually
     private async exchangeCodeForTokens(code: string) {
         try {
-            
+
             const tokenUrl = `https://${AWS_CONFIG.COGNITO_DOMAIN}/oauth2/token`;
-            
+
             const body = new URLSearchParams({
                 grant_type: 'authorization_code',
                 client_id: AWS_CONFIG.USER_POOL_CLIENT_ID,
@@ -196,22 +206,22 @@ class SimpleAuthService {
 
 
             if (response.ok && tokenData.access_token) {
-                return { 
-                    success: true, 
-                    tokens: tokenData 
+                return {
+                    success: true,
+                    tokens: tokenData
                 };
             } else {
                 console.error('❌ Token exchange failed:', tokenData);
-                return { 
-                    success: false, 
-                    error: tokenData.error_description || tokenData.error || 'Token exchange failed' 
+                return {
+                    success: false,
+                    error: tokenData.error_description || tokenData.error || 'Token exchange failed'
                 };
             }
         } catch (error: any) {
             console.error('❌ Token exchange error:', error);
-            return { 
-                success: false, 
-                error: error.message || 'Network error during token exchange' 
+            return {
+                success: false,
+                error: error.message || 'Network error during token exchange'
             };
         }
     }
@@ -224,7 +234,7 @@ class SimpleAuthService {
                 // Simple JWT decode (just the payload, no verification since we trust Cognito)
                 const payload = JSON.parse(atob(tokens.id_token.split('.')[1]));
 
-                
+
                 return {
                     username: payload.sub || payload['cognito:username'] || 'user',
                     email: payload.email,

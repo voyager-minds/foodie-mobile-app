@@ -1,11 +1,11 @@
 // RestaurantDetailsScreen.js
-import restaurantService from '@/services/restaurants';
-import reviewService from '@/services/review';
-import { useTheme } from '@/store/useTheme';
-import { Ionicons } from '@expo/vector-icons';
-import { useCameraPermissions } from 'expo-camera';
-import { router, useLocalSearchParams } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import restaurantService from "@/services/restaurants"
+import reviewService from "@/services/review"
+import { useTheme } from "@/store/useTheme"
+import { Ionicons } from "@expo/vector-icons"
+import { useCameraPermissions } from "expo-camera"
+import { router, useLocalSearchParams } from "expo-router"
+import { useCallback, useEffect, useState } from "react"
 import {
 	ActivityIndicator,
 	Alert,
@@ -19,264 +19,270 @@ import {
 	TextInput,
 	TouchableOpacity,
 	View,
-} from 'react-native';
-import Camera from '../../components/Camera/Camera';
-import { getImageUrl } from '../../utils/imageUtils';
-import { restaurantStyles } from './styles';
+} from "react-native"
+import Camera from "../../components/Camera/Camera"
+import { getImageUrl } from "../../utils/imageUtils"
+import { restaurantStyles } from "./styles"
 
 // Utility function to calculate overall rating
 const calculateOverallRating = (ratings: Ratings): number => {
-	const { food, service, ambience, value } = ratings;
-	return Math.round(((food + service + ambience + value) / 4) * 10) / 10;
-};
+	const { food, service, ambience, value } = ratings
+	return Math.round(((food + service + ambience + value) / 4) * 10) / 10
+}
 
 // Utility function to format date
 const formatReviewDate = (dateString: string): string => {
 	try {
-		const date = new Date(dateString);
-		return date.toLocaleDateString('en-US', {
-			year: 'numeric',
-			month: 'short',
-			day: 'numeric',
-		});
+		const date = new Date(dateString)
+		return date.toLocaleDateString("en-US", {
+			year: "numeric",
+			month: "short",
+			day: "numeric",
+		})
 	} catch {
-		return 'Unknown date';
+		return "Unknown date"
 	}
-};
+}
 
 interface Restaurant {
-	id: string;
-	name: string;
-	city: string;
-	tags: string[];
-	coverImage?: string;
-	coverImageUrl?: string;
-	coverImageKey?: string;
-	avgOverall?: number;
-	avgFood?: number;
-	avgService?: number;
-	avgAmbience?: number;
-	avgValue?: number;
-	countReviews?: number;
+	id: string
+	name: string
+	city: string
+	tags: string[]
+	coverImage?: string
+	coverImageUrl?: string
+	coverImageKey?: string
+	avgOverall?: number
+	avgFood?: number
+	avgService?: number
+	avgAmbience?: number
+	avgValue?: number
+	countReviews?: number
 }
 
 interface MenuItem {
-	id: string;
-	restaurantId: string;
-	name: string;
-	description: string;
-	priceCents: number;
-	currency: string;
-	images: string[];
-	isAvailable: boolean;
-	createdAt: string;
-	updatedAt: string;
+	id: string
+	restaurantId: string
+	name: string
+	description: string
+	priceCents: number
+	currency: string
+	images: string[]
+	isAvailable: boolean
+	createdAt: string
+	updatedAt: string
 }
 
 export interface Ratings {
-	food: number;
-	service: number;
-	ambience: number;
-	value: number;
+	food: number
+	service: number
+	ambience: number
+	value: number
 }
 
 interface Review {
-	id: string;
-	restaurantId: string;
-	menuItemId?: string;
-	authorSub: string;
-	ratings: Ratings;
-	text: string;
-	status: string;
-	createdAt: string;
-	updatedAt: string;
-	comments?: Comment[];
-	images?: string[];
+	id: string
+	restaurantId: string
+	menuItemId?: string
+	authorSub: string
+	ratings: Ratings
+	text: string
+	status: string
+	createdAt: string
+	updatedAt: string
+	comments?: Comment[]
+	images?: string[]
 }
 
 interface Comment {
-	id: string;
-	text: string;
-	authorSub: string;
-	createdAt: string;
+	id: string
+	text: string
+	authorSub: string
+	createdAt: string
 }
 
 export default function Index() {
-	const { restaurantId } = useLocalSearchParams<{ restaurantId: string }>();
+	const { restaurantId } = useLocalSearchParams<{ restaurantId: string }>()
 
-	const { colors, isDarkMode, toggleTheme } = useTheme();
-	const styles = restaurantStyles(colors);
+	const { colors, isDarkMode, toggleTheme } = useTheme()
+	const styles = restaurantStyles(colors)
 
-	const [loading, setLoading] = useState(true);
-	const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
+	const [loading, setLoading] = useState(true)
+	const [restaurant, setRestaurant] = useState<Restaurant | null>(null)
 
-	const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-	const [isLoadingMenuItems, setIsLoadingMenuItems] = useState(false);
+	const [menuItems, setMenuItems] = useState<MenuItem[]>([])
+	const [isLoadingMenuItems, setIsLoadingMenuItems] = useState(false)
 
-	const [reviews, setReviews] = useState<Review[]>([]);
-	const [loadingReviews, setLoadingReviews] = useState(false);
-	const [reviewsPage, setReviewsPage] = useState(1);
-	const [reviewsTotalPages, setReviewsTotalPages] = useState(1);
+	const [reviews, setReviews] = useState<Review[]>([])
+	const [loadingReviews, setLoadingReviews] = useState(false)
+	const [reviewsPage, setReviewsPage] = useState(1)
+	const [reviewsTotalPages, setReviewsTotalPages] = useState(1)
 
 	const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItem | null>(
 		null
-	);
-	const [showMenuModal, setShowMenuModal] = useState(false);
+	)
+	const [showMenuModal, setShowMenuModal] = useState(false)
 
-	const [showAddReviewModal, setShowAddReviewModal] = useState(false);
-	const [newReviewText, setNewReviewText] = useState('');
-	const [newReviewStars, setNewReviewStars] = useState('5');
-	const [reviewImages, setReviewImages] = useState<string[]>([]);
-	const [isSubmittingReview, setIsSubmittingReview] = useState(false);
-	const [showCamera, setShowCamera] = useState(false);
-	const [cameraPermission, requestCameraPermission] = useCameraPermissions();
+	const [showAddReviewModal, setShowAddReviewModal] = useState(false)
+	const [newReviewText, setNewReviewText] = useState("")
+	const [newReviewStars, setNewReviewStars] = useState("5")
+	const [reviewImages, setReviewImages] = useState<string[]>([])
+	const [isSubmittingReview, setIsSubmittingReview] = useState(false)
+	const [showCamera, setShowCamera] = useState(false)
+	const [cameraPermission, requestCameraPermission] = useCameraPermissions()
 
 	// replies text state keyed by review id
-	const [replyTexts, setReplyTexts] = useState<Record<string, string>>({});
+	const [replyTexts, setReplyTexts] = useState<Record<string, string>>({})
 
-	const [openReplyIds, setOpenReplyIds] = useState<Record<string, boolean>>({});
+	const [openReplyIds, setOpenReplyIds] = useState<Record<string, boolean>>({})
 
 	// fetch restaurant details
 	const fetchRestaurant = useCallback(async () => {
-		setLoading(true);
+		setLoading(true)
 		try {
-			const res = await restaurantService.getlRestaurantById(restaurantId);
+			const res = await restaurantService.getlRestaurantById(restaurantId)
 
-			setRestaurant(res.data);
+			setRestaurant(res.data)
 		} catch (err) {
-			console.error(err);
-			Alert.alert('Error', 'Could not load restaurant details.');
+			console.error(err)
+			Alert.alert("Error", "Could not load restaurant details.")
 		} finally {
-			setLoading(false);
+			setLoading(false)
 		}
-	}, [restaurantId]);
+	}, [restaurantId])
 
 	// fetch menu items
 	const fetchMenuItems = useCallback(async () => {
-		if (!restaurantId) return;
+		if (!restaurantId) return
 
-		setIsLoadingMenuItems(true);
+		setIsLoadingMenuItems(true)
 		try {
-			const res = await restaurantService.getlRestaurantMenuById(restaurantId);
+			const res = await restaurantService.getlRestaurantMenuById(restaurantId)
 
-			setMenuItems(res.data || []);
+			setMenuItems(res.data || [])
 		} catch (err) {
-			console.error(err);
-			Alert.alert('Error', 'Could not load menu items.');
+			console.error(err)
+			Alert.alert("Error", "Could not load menu items.")
 		} finally {
-			setIsLoadingMenuItems(false);
+			setIsLoadingMenuItems(false)
 		}
-	}, [restaurantId]);
+	}, [restaurantId])
 
 	// fetch reviews (paginated)
 	const fetchReviews = useCallback(
 		async (page = 1) => {
-			if (!restaurantId) return;
+			if (!restaurantId) return
 
-			setLoadingReviews(true);
+			setLoadingReviews(true)
 			try {
-				const res = await reviewService.getlRestaurantReviewById(restaurantId);
-				const reviewsData = res.data;
-				const reviewItems = reviewsData.items || [];
-				setReviews(reviewItems);
-				setReviewsPage(reviewsData.page || page);
+				const res = await reviewService.getlRestaurantReviewById(restaurantId)
+				const reviewsData = res.data
+				const reviewItems = reviewsData.items || []
+				setReviews(reviewItems)
+				setReviewsPage(reviewsData.page || page)
 				setReviewsTotalPages(
 					reviewsData.totalPages ||
 						Math.max(1, Math.ceil(reviewItems.length / 10))
-				);
+				)
 			} catch (err) {
-				console.error('Error fetching reviews:', err);
+				console.error("Error fetching reviews:", err)
 				// Fallback to empty state
-				setReviews([]);
-				setReviewsPage(page);
-				setReviewsTotalPages(1);
+				setReviews([])
+				setReviewsPage(page)
+				setReviewsTotalPages(1)
 			} finally {
-				setLoadingReviews(false);
+				setLoadingReviews(false)
 			}
 		},
 		[restaurantId]
-	);
+	)
 
 	useEffect(() => {
 		// load everything on mount
-		fetchRestaurant();
-		fetchMenuItems();
-		fetchReviews(1);
-	}, [fetchRestaurant, fetchMenuItems, fetchReviews]);
+		fetchRestaurant()
+		fetchMenuItems()
+		fetchReviews(1)
+	}, [fetchRestaurant, fetchMenuItems, fetchReviews])
 
 	// Utility: format price from cents (or fallback)
-	const formatMenuPrice = (priceCents: number, currency = 'USD') => {
-		if (priceCents == null) return '-';
+	const formatMenuPrice = (priceCents: number, currency = "USD") => {
+		if (priceCents == null) return "-"
 		try {
-			const value = priceCents / 100;
+			const value = priceCents / 100
 			// Basic Intl formatting — if unsupported on Android older versions fallback simple
-			if (Platform.OS === 'android' && !Intl?.NumberFormat) {
-				return `${currency} ${value.toFixed(2)}`;
+			if (Platform.OS === "android" && !Intl?.NumberFormat) {
+				return `${currency} ${value.toFixed(2)}`
 			}
 			return new Intl.NumberFormat(undefined, {
-				style: 'currency',
+				style: "currency",
 				currency,
 				maximumFractionDigits: 2,
-			}).format(value);
+			}).format(value)
 		} catch {
-			return `${currency} ${(priceCents / 100).toFixed(2)}`;
+			return `${currency} ${(priceCents / 100).toFixed(2)}`
 		}
-	};
+	}
 
 	const viewMenuItemDetails = (item: MenuItem) => {
-		setSelectedMenuItem(item);
-		setShowMenuModal(true);
-	};
+		setSelectedMenuItem(item)
+		setShowMenuModal(true)
+	}
 
 	const closeMenuItemModal = () => {
-		setSelectedMenuItem(null);
-		setShowMenuModal(false);
-	};
+		setSelectedMenuItem(null)
+		setShowMenuModal(false)
+	}
 
 	const toggleReplySection = (reviewId: string) => {
-		setOpenReplyIds((prev) => ({ ...prev, [reviewId]: !prev[reviewId] }));
-	};
+		setOpenReplyIds((prev) => ({ ...prev, [reviewId]: !prev[reviewId] }))
+	}
 
 	// post comment (reply) to review
 	const addReply = async (reviewId: string) => {
-		const text = (replyTexts[reviewId] || '').trim();
-		if (!text) return;
+		const text = (replyTexts[reviewId] || "").trim()
+		if (!text) return
 		try {
 			// Mock implementation for now
-			Alert.alert('Success', 'Reply posted');
-			setReplyTexts((prev) => ({ ...prev, [reviewId]: '' }));
+			Alert.alert("Success", "Reply posted")
+			setReplyTexts((prev) => ({ ...prev, [reviewId]: "" }))
 		} catch (err) {
-			console.error(err);
-			Alert.alert('Error', 'Could not post reply.');
+			console.error(err)
+			Alert.alert("Error", "Could not post reply.")
 		}
-	};
+	}
 
 	// add a review for restaurant
 	const submitReview = async () => {
-		const text = newReviewText.trim();
+		const text = newReviewText.trim()
 		if (!text) {
-			Alert.alert('Validation', 'Please write a review.');
-			return;
+			Alert.alert("Validation", "Please write a review.")
+			return
 		}
-		if (!restaurantId) return;
+		if (!restaurantId) return
 
 		try {
-			setIsSubmittingReview(true);
+			setIsSubmittingReview(true)
 
-			let uploadedImageKeys: string[] | null = null;
+			let uploadedImageKeys: string[] | null = null
 
 			// Upload images if they exist
 			if (reviewImages && reviewImages.length > 0) {
 				try {
-					uploadedImageKeys = await reviewService.uploadReviewImages(reviewImages);
+					uploadedImageKeys = await reviewService.uploadReviewImages(
+						reviewImages
+					)
 				} catch (imageError) {
-					console.error('Image upload failed:', imageError);
-					throw new Error(`Image upload failed: ${imageError instanceof Error ? imageError.message : 'Unknown error'}`);
+					console.error("Image upload failed:", imageError)
+					throw new Error(
+						`Image upload failed: ${
+							imageError instanceof Error ? imageError.message : "Unknown error"
+						}`
+					)
 				}
 			}
 
 			// Convert star rating to detailed ratings (using same value for all categories)
-			const starRating = parseInt(newReviewStars) || 5;
+			const starRating = parseInt(newReviewStars) || 5
 			const reviewData = {
 				text,
 				ratings: {
@@ -286,88 +292,95 @@ export default function Index() {
 					value: starRating,
 				},
 				images: uploadedImageKeys, // Use uploaded image keys or null
-			};
+			}
 
-			const res = await reviewService.addRestaurantReview(restaurantId, reviewData);
+			const res = await reviewService.addRestaurantReview(
+				restaurantId,
+				reviewData
+			)
 
 			// Reset form
-			setNewReviewText('');
-			setNewReviewStars('5');
-			setReviewImages([]);
-			setShowAddReviewModal(false);
+			setNewReviewText("")
+			setNewReviewStars("5")
+			setReviewImages([])
+			setShowAddReviewModal(false)
 
-			Alert.alert('Thanks!', 'Your review has been posted.');
-			
+			Alert.alert("Thanks!", "Your review has been posted.")
+
 			// Refresh reviews list
-			fetchReviews(1);
+			fetchReviews(1)
 		} catch (err) {
-			console.error('Error submitting review:', err);
-			console.error('Error details:', JSON.stringify(err, null, 2));
-			Alert.alert('Error', `Could not submit review. Please try again.\n\nError: ${err instanceof Error ? err.message : 'Unknown error'}`);
+			console.error("Error submitting review:", err)
+			console.error("Error details:", JSON.stringify(err, null, 2))
+			Alert.alert(
+				"Error",
+				`Could not submit review. Please try again.\n\nError: ${
+					err instanceof Error ? err.message : "Unknown error"
+				}`
+			)
 		} finally {
-			setIsSubmittingReview(false);
+			setIsSubmittingReview(false)
 		}
-	};
+	}
 
 	// Handle image capture from camera
 	const handleImageCaptured = (imageUri: string) => {
-		setReviewImages((prev) => [...prev, imageUri]);
-		setShowCamera(false);
-		setShowAddReviewModal(true);
-	};
+		setReviewImages((prev) => [...prev, imageUri])
+		setShowCamera(false)
+		setShowAddReviewModal(true)
+	}
 
 	// Remove image from review
 	const removeImage = (index: number) => {
-		setReviewImages((prev) => prev.filter((_, i) => i !== index));
-	};
+		setReviewImages((prev) => prev.filter((_, i) => i !== index))
+	}
 
 	// Handle camera opening with permission check
 	const openCamera = async () => {
-
 		try {
 			if (!cameraPermission) {
-				const permission = await requestCameraPermission();
+				const permission = await requestCameraPermission()
 				if (!permission.granted) {
 					Alert.alert(
-						'Permission Required',
-						'Camera permission is required to take photos.'
-					);
-					return;
+						"Permission Required",
+						"Camera permission is required to take photos."
+					)
+					return
 				}
 			} else if (!cameraPermission.granted) {
-				const permission = await requestCameraPermission();
+				const permission = await requestCameraPermission()
 				if (!permission.granted) {
 					Alert.alert(
-						'Permission Required',
-						'Camera permission is required to take photos.'
-					);
-					return;
+						"Permission Required",
+						"Camera permission is required to take photos."
+					)
+					return
 				}
 			}
 
-			setShowAddReviewModal(false);
-			setShowCamera(true);
+			setShowAddReviewModal(false)
+			setShowCamera(true)
 		} catch (error) {
-			console.error('Error in openCamera:', error);
+			console.error("Error in openCamera:", error)
 			Alert.alert(
-				'Error',
-				'Failed to open camera: ' +
-					(error instanceof Error ? error.message : 'Unknown error')
-			);
+				"Error",
+				"Failed to open camera: " +
+					(error instanceof Error ? error.message : "Unknown error")
+			)
 		}
-	};
+	}
 
 	// pagination controls for reviews
 	const previousPage = () => {
-		if (reviewsPage <= 1) return;
-		const next = reviewsPage - 1;
-		fetchReviews(next);
-	};
+		if (reviewsPage <= 1) return
+		const next = reviewsPage - 1
+		fetchReviews(next)
+	}
 	const nextPage = () => {
-		if (reviewsPage >= reviewsTotalPages) return;
-		const next = reviewsPage + 1;
-		fetchReviews(next);
-	};
+		if (reviewsPage >= reviewsTotalPages) return
+		const next = reviewsPage + 1
+		fetchReviews(next)
+	}
 
 	// Render: menu item card
 	const renderMenuCard = ({ item }: { item: MenuItem }) => {
@@ -376,7 +389,8 @@ export default function Index() {
 				style={[
 					styles.menuCard,
 					!item.isAvailable && styles.menuCardUnavailable,
-				]}>
+				]}
+			>
 				<View style={styles.menuImageWrap}>
 					<Image
 						source={{
@@ -387,15 +401,11 @@ export default function Index() {
 							),
 						}}
 						style={styles.menuImage}
-						resizeMode='cover'
+						resizeMode="cover"
 					/>
 					{!item.isAvailable && (
 						<View style={styles.availabilityBadge}>
-							<Ionicons
-								name='close-circle'
-								size={14}
-								color='#fff'
-							/>
+							<Ionicons name="close-circle" size={14} color="#fff" />
 							<Text style={styles.availabilityText}>Unavailable</Text>
 						</View>
 					)}
@@ -404,27 +414,27 @@ export default function Index() {
 				<View style={styles.menuContent}>
 					<Text style={styles.menuName}>{item.name}</Text>
 					{item.description ? (
-						<Text
-							style={styles.menuDesc}
-							numberOfLines={2}>
+						<Text style={styles.menuDesc} numberOfLines={2}>
 							{item.description}
 						</Text>
 					) : null}
-					{/* <View style={styles.menuFooter}>
-            <Text style={styles.menuPrice}>
-              {formatMenuPrice(item.priceCents, item.currency)}
-            </Text>
-            <TouchableOpacity
-              style={styles.viewDetailsBtn}
-              onPress={() => viewMenuItemDetails(item)}
-            >
-              <Text style={styles.viewDetailsText}>View Details</Text>
-            </TouchableOpacity>
-          </View> */}
+					{
+						<View style={styles.menuFooter}>
+							<Text style={styles.menuPrice}>
+								{formatMenuPrice(item.priceCents, item.currency)}
+							</Text>
+							<TouchableOpacity
+								style={styles.viewDetailsBtn}
+								onPress={() => viewMenuItemDetails(item)}
+							>
+								<Text style={styles.viewDetailsText}>View Details</Text>
+							</TouchableOpacity>
+						</View>
+					}
 				</View>
 			</TouchableOpacity>
-		);
-	};
+		)
+	}
 
 	// Render: single review item
 	const renderReview = ({ item }: { item: Review }) => {
@@ -433,12 +443,12 @@ export default function Index() {
 				<View style={styles.reviewHeader}>
 					<View style={styles.reviewerAvatar}>
 						<Text style={styles.avatarText}>
-							{(item.authorSub?.[0] || 'U').toUpperCase()}
+							{(item.authorSub?.[0] || "U").toUpperCase()}
 						</Text>
 					</View>
 					<View style={{ flex: 1, marginLeft: 10 }}>
 						<Text style={styles.reviewerName}>
-							{item.authorSub || 'Anonymous'}
+							{item.authorSub || "Anonymous"}
 						</Text>
 						<Text style={styles.reviewDate}>
 							{formatReviewDate(item.createdAt)}
@@ -453,12 +463,12 @@ export default function Index() {
 
 				<Text style={styles.reviewText}>{item.text}</Text>
 
-
 				{item.images && item.images.length > 0 && (
 					<ScrollView
 						horizontal
 						style={styles.reviewImagesContainer}
-						showsHorizontalScrollIndicator={false}>
+						showsHorizontalScrollIndicator={false}
+					>
 						{item.images.map((imageKey, index) => (
 							<Image
 								key={index}
@@ -473,7 +483,8 @@ export default function Index() {
 				<View style={styles.reviewActions}>
 					<TouchableOpacity
 						onPress={() => toggleReplySection(item.id)}
-						style={styles.replyButton}>
+						style={styles.replyButton}
+					>
 						<Text>💬 Reply ({item?.comments?.length || 0})</Text>
 					</TouchableOpacity>
 				</View>
@@ -483,12 +494,10 @@ export default function Index() {
 						{item.comments && item.comments.length > 0 ? (
 							<View style={styles.commentsList}>
 								{item.comments.map((c: Comment) => (
-									<View
-										key={c.id}
-										style={styles.commentItem}>
+									<View key={c.id} style={styles.commentItem}>
 										<View style={styles.commentHeader}>
 											<Text style={styles.commentAuthor}>
-												{c.authorSub || 'U'}
+												{c.authorSub || "U"}
 											</Text>
 											<Text style={styles.commentDate}>
 												{new Date(c.createdAt).toLocaleDateString()}
@@ -499,14 +508,14 @@ export default function Index() {
 								))}
 							</View>
 						) : (
-							<Text style={{ color: '#666', marginBottom: 8 }}>
+							<Text style={{ color: "#666", marginBottom: 8 }}>
 								No replies yet
 							</Text>
 						)}
 
 						<TextInput
-							placeholder='Write a reply...'
-							value={replyTexts[item.id] || ''}
+							placeholder="Write a reply..."
+							value={replyTexts[item.id] || ""}
 							onChangeText={(t: string) =>
 								setReplyTexts((p) => ({ ...p, [item.id]: t }))
 							}
@@ -516,27 +525,25 @@ export default function Index() {
 						<TouchableOpacity
 							style={[
 								styles.postReplyBtn,
-								!(replyTexts[item.id] || '').trim() && styles.disabledBtn,
+								!(replyTexts[item.id] || "").trim() && styles.disabledBtn,
 							]}
 							onPress={() => addReply(item.id)}
-							disabled={!replyTexts[item.id] || !replyTexts[item.id].trim()}>
+							disabled={!replyTexts[item.id] || !replyTexts[item.id].trim()}
+						>
 							<Text style={styles.postReplyText}>Post Reply</Text>
 						</TouchableOpacity>
 					</View>
 				)}
 			</View>
-		);
-	};
+		)
+	}
 
 	if (loading) {
 		return (
 			<View style={styles.centered}>
-				<ActivityIndicator
-					size='large'
-					color='#ff7f50'
-				/>
+				<ActivityIndicator size="large" color="#ff7f50" />
 			</View>
-		);
+		)
 	}
 
 	if (!restaurant) {
@@ -544,7 +551,7 @@ export default function Index() {
 			<View style={styles.centered}>
 				<Text>Restaurant not found.</Text>
 			</View>
-		);
+		)
 	}
 
 	return (
@@ -554,7 +561,6 @@ export default function Index() {
 				renderItem={() => null}
 				ListHeaderComponent={
 					<>
-
 						<View style={styles.headerImageWrap}>
 							<Image
 								source={{
@@ -565,24 +571,19 @@ export default function Index() {
 									),
 								}}
 								style={styles.headerImage}
-								resizeMode='cover'
+								resizeMode="cover"
 							/>
 						</View>
 
-
 						<View style={styles.card}>
 							<Text style={styles.restaurantName}>
-								{restaurant.name || 'Unknown Restaurant'}
+								{restaurant.name || "Unknown Restaurant"}
 							</Text>
 
 							<View style={styles.metaRow}>
 								{restaurant.avgOverall ? (
 									<View style={styles.ratingWrap}>
-										<Ionicons
-											name='star'
-											size={16}
-											color='#ffb74d'
-										/>
+										<Ionicons name="star" size={16} color="#ffb74d" />
 										<Text style={styles.ratingText}>
 											{restaurant.avgOverall.toFixed(1)} (
 											{restaurant.countReviews || 0})
@@ -592,11 +593,7 @@ export default function Index() {
 
 								{restaurant.city ? (
 									<View style={styles.cityBadge}>
-										<Ionicons
-											name='location-outline'
-											size={14}
-											color='#777'
-										/>
+										<Ionicons name="location-outline" size={14} color="#777" />
 										<Text style={styles.cityText}>{restaurant.city}</Text>
 									</View>
 								) : null}
@@ -605,9 +602,7 @@ export default function Index() {
 							{restaurant.tags?.length ? (
 								<View style={styles.tagRow}>
 									{restaurant.tags.map((t: string, i: number) => (
-										<View
-											key={i}
-											style={styles.tag}>
+										<View key={i} style={styles.tag}>
 											<Text style={styles.tagText}>{t}</Text>
 										</View>
 									))}
@@ -615,21 +610,17 @@ export default function Index() {
 							) : null}
 						</View>
 
-
 						<View style={styles.section}>
 							<View style={styles.sectionHeader}>
 								<Text style={styles.sectionTitle}>Menu Items</Text>
 								<Text style={styles.sectionCount}>
-									{menuItems.length} {menuItems.length === 1 ? 'item' : 'items'}
+									{menuItems.length} {menuItems.length === 1 ? "item" : "items"}
 								</Text>
 							</View>
 
 							{isLoadingMenuItems ? (
 								<View style={styles.centered}>
-									<ActivityIndicator
-										size='small'
-										color='#ff7f50'
-									/>
+									<ActivityIndicator size="small" color="#ff7f50" />
 									<Text style={{ marginTop: 8 }}>Loading menu items...</Text>
 								</View>
 							) : menuItems.length > 0 ? (
@@ -642,11 +633,7 @@ export default function Index() {
 								</View>
 							) : (
 								<View style={styles.emptyState}>
-									<Ionicons
-										name='restaurant-outline'
-										size={48}
-										color='#ccc'
-									/>
+									<Ionicons name="restaurant-outline" size={48} color="#ccc" />
 									<Text style={styles.emptyTitle}>No Menu Items</Text>
 									<Text style={styles.emptySubtitle}>
 										This restaurant hasn't added any menu items yet.
@@ -655,7 +642,6 @@ export default function Index() {
 							)}
 						</View>
 
-
 						<View style={styles.section}>
 							<View style={styles.sectionHeader}>
 								<Text style={styles.sectionTitle}>Restaurant Reviews</Text>
@@ -663,35 +649,29 @@ export default function Index() {
 									style={styles.viewAllBtn}
 									onPress={() => {
 										router.push({
-											pathname: '/Reviews',
+											pathname: "/Reviews",
 											params: {
 												restaurantId: restaurantId,
-												restaurantName: restaurant?.name || 'Restaurant',
+												restaurantName: restaurant?.name || "Restaurant",
 											},
-										});
-									}}>
+										})
+									}}
+								>
 									<Text style={styles.viewAllText}>View All</Text>
-									<Ionicons
-										name='chevron-forward'
-										size={16}
-										color='#ff7f50'
-									/>
+									<Ionicons name="chevron-forward" size={16} color="#ff7f50" />
 								</TouchableOpacity>
 							</View>
 
 							{loadingReviews ? (
 								<View style={styles.centered}>
-									<ActivityIndicator
-										size='small'
-										color='#ff7f50'
-									/>
+									<ActivityIndicator size="small" color="#ff7f50" />
 								</View>
 							) : reviews.length === 0 ? (
 								<View style={styles.emptyState}>
 									<Ionicons
-										name='chatbox-ellipses-outline'
+										name="chatbox-ellipses-outline"
 										size={48}
-										color='#ccc'
+										color="#ccc"
 									/>
 									<Text style={styles.emptyTitle}>No Reviews Yet</Text>
 									<Text style={styles.emptySubtitle}>
@@ -701,13 +681,14 @@ export default function Index() {
 										style={styles.addReviewBtn}
 										onPress={() => {
 											router.push({
-												pathname: '/Reviews',
+												pathname: "/Reviews",
 												params: {
 													restaurantId: restaurantId,
-													restaurantName: restaurant?.name || 'Restaurant',
+													restaurantName: restaurant?.name || "Restaurant",
 												},
-											});
-										}}>
+											})
+										}}
+									>
 										<Text style={styles.addReviewText}>Write a Review</Text>
 									</TouchableOpacity>
 								</View>
@@ -721,7 +702,6 @@ export default function Index() {
 								</View>
 							)}
 
-
 							{reviewsTotalPages > 1 && (
 								<View style={styles.pagination}>
 									<TouchableOpacity
@@ -730,7 +710,8 @@ export default function Index() {
 											reviewsPage === 1 && styles.disabledBtn,
 										]}
 										disabled={reviewsPage === 1}
-										onPress={previousPage}>
+										onPress={previousPage}
+									>
 										<Text style={styles.pageButtonText}>&laquo; Previous</Text>
 									</TouchableOpacity>
 
@@ -744,7 +725,8 @@ export default function Index() {
 											reviewsPage === reviewsTotalPages && styles.disabledBtn,
 										]}
 										disabled={reviewsPage === reviewsTotalPages}
-										onPress={nextPage}>
+										onPress={nextPage}
+									>
 										<Text style={styles.pageButtonText}>Next &raquo;</Text>
 									</TouchableOpacity>
 								</View>
@@ -764,20 +746,14 @@ export default function Index() {
         <Ionicons name="add" size={22} color="#fff" />
       </TouchableOpacity> */}
 
-
-			<Modal
-				visible={showMenuModal}
-				animationType='slide'
-				transparent>
+			<Modal visible={showMenuModal} animationType="slide" transparent>
 				<View style={styles.modalOverlay}>
 					<View style={styles.modalContainer}>
 						<TouchableOpacity
 							style={styles.modalClose}
-							onPress={closeMenuItemModal}>
-							<Ionicons
-								name='close'
-								size={22}
-							/>
+							onPress={closeMenuItemModal}
+						>
+							<Ionicons name="close" size={22} />
 						</TouchableOpacity>
 
 						{selectedMenuItem ? (
@@ -800,7 +776,7 @@ export default function Index() {
 									</View>
 
 									<Text style={styles.modalStatus}>
-										{selectedMenuItem.isAvailable ? 'Available' : 'Unavailable'}
+										{selectedMenuItem.isAvailable ? "Available" : "Unavailable"}
 									</Text>
 
 									{selectedMenuItem.description ? (
@@ -812,9 +788,10 @@ export default function Index() {
 									<TouchableOpacity
 										style={styles.modalActionBtn}
 										onPress={() => {
-											setShowAddReviewModal(true);
-											closeMenuItemModal();
-										}}>
+											setShowAddReviewModal(true)
+											closeMenuItemModal()
+										}}
+									>
 										<Text style={styles.modalActionText}>Write a Review</Text>
 									</TouchableOpacity>
 								</View>
@@ -824,59 +801,105 @@ export default function Index() {
 				</View>
 			</Modal>
 
-
-			<Modal
-				visible={showAddReviewModal}
-				animationType='slide'
-				transparent>
+			<Modal visible={showAddReviewModal} animationType="slide" transparent>
 				<View style={styles.modalOverlay}>
 					<View style={styles.addReviewModal}>
-						<View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+						<View
+							style={{
+								flexDirection: "row",
+								justifyContent: "space-between",
+								alignItems: "center",
+								marginBottom: 16,
+							}}
+						>
 							<Text style={styles.modalTitle}>Write a Review</Text>
 							<TouchableOpacity
 								onPress={() => {
-									Keyboard.dismiss();
-									setShowAddReviewModal(false);
-								}}>
+									Keyboard.dismiss()
+									setShowAddReviewModal(false)
+								}}
+							>
 								<Ionicons name="close" size={24} color="#333" />
 							</TouchableOpacity>
 						</View>
 
 						<TextInput
-							placeholder='Your review...'
+							placeholder="Your review..."
 							multiline
 							value={newReviewText}
 							onChangeText={setNewReviewText}
 							style={[styles.commentInput, { height: 100 }]}
-							returnKeyType='done'
+							returnKeyType="done"
 							blurOnSubmit={true}
-							textAlignVertical='top'
+							textAlignVertical="top"
 						/>
 
-
 						<View style={{ marginBottom: 16 }}>
-							<View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-								<Text style={{ fontSize: 16, fontWeight: '600', color: '#333' }}>Add Photos</Text>
+							<View
+								style={{
+									flexDirection: "row",
+									justifyContent: "space-between",
+									alignItems: "center",
+									marginBottom: 12,
+								}}
+							>
+								<Text
+									style={{ fontSize: 16, fontWeight: "600", color: "#333" }}
+								>
+									Add Photos
+								</Text>
 								<TouchableOpacity
-									style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, borderWidth: 1, borderColor: '#ff7f50' }}
-									onPress={openCamera}>
+									style={{
+										flexDirection: "row",
+										alignItems: "center",
+										backgroundColor: "#fff",
+										paddingHorizontal: 12,
+										paddingVertical: 8,
+										borderRadius: 8,
+										borderWidth: 1,
+										borderColor: "#ff7f50",
+									}}
+									onPress={openCamera}
+								>
 									<Ionicons name="camera" size={16} color="#ff7f50" />
-									<Text style={{ color: '#ff7f50', fontWeight: '600', marginLeft: 6 }}>Add Photo</Text>
+									<Text
+										style={{
+											color: "#ff7f50",
+											fontWeight: "600",
+											marginLeft: 6,
+										}}
+									>
+										Add Photo
+									</Text>
 								</TouchableOpacity>
 							</View>
 
 							{reviewImages.length > 0 && (
-								<ScrollView horizontal style={{ flexDirection: 'row' }}>
+								<ScrollView horizontal style={{ flexDirection: "row" }}>
 									{reviewImages.map((imageUri, index) => (
-										<View key={index} style={{ position: 'relative', marginRight: 12 }}>
+										<View
+											key={index}
+											style={{ position: "relative", marginRight: 12 }}
+										>
 											<Image
 												source={{ uri: imageUri }}
 												style={{ width: 80, height: 80, borderRadius: 8 }}
 											/>
 											<TouchableOpacity
-												style={{ position: 'absolute', top: -8, right: -8, backgroundColor: 'white', borderRadius: 10 }}
-												onPress={() => removeImage(index)}>
-												<Ionicons name="close-circle" size={20} color="#ff4444" />
+												style={{
+													position: "absolute",
+													top: -8,
+													right: -8,
+													backgroundColor: "white",
+													borderRadius: 10,
+												}}
+												onPress={() => removeImage(index)}
+											>
+												<Ionicons
+													name="close-circle"
+													size={20}
+													color="#ff4444"
+												/>
 											</TouchableOpacity>
 										</View>
 									))}
@@ -886,26 +909,35 @@ export default function Index() {
 
 						<View
 							style={{
-								flexDirection: 'row',
-								alignItems: 'center',
+								flexDirection: "row",
+								alignItems: "center",
 								marginBottom: 20,
-							}}>
-							<Text style={{ marginRight: 8, fontSize: 16, fontWeight: '600' }}>Rating:</Text>
+							}}
+						>
+							<Text style={{ marginRight: 8, fontSize: 16, fontWeight: "600" }}>
+								Rating:
+							</Text>
 							<TextInput
 								value={newReviewStars}
 								onChangeText={setNewReviewStars}
 								style={styles.starInput}
-								keyboardType='numeric'
+								keyboardType="numeric"
 								maxLength={1}
 							/>
-							<Text style={{ marginLeft: 8, color: '#666' }}>out of 5 stars</Text>
+							<Text style={{ marginLeft: 8, color: "#666" }}>
+								out of 5 stars
+							</Text>
 						</View>
 
-						<View style={{ flexDirection: 'row', gap: 12 }}>
+						<View style={{ flexDirection: "row", gap: 12 }}>
 							<TouchableOpacity
-								style={[styles.submitReviewBtn, isSubmittingReview && { opacity: 0.7 }]}
+								style={[
+									styles.submitReviewBtn,
+									isSubmittingReview && { opacity: 0.7 },
+								]}
 								onPress={submitReview}
-								disabled={isSubmittingReview}>
+								disabled={isSubmittingReview}
+							>
 								{isSubmittingReview ? (
 									<ActivityIndicator size="small" color="#fff" />
 								) : (
@@ -913,32 +945,36 @@ export default function Index() {
 								)}
 							</TouchableOpacity>
 							<TouchableOpacity
-								style={[styles.submitReviewBtn, { backgroundColor: '#ddd', flex: 1 }]}
+								style={[
+									styles.submitReviewBtn,
+									{ backgroundColor: "#ddd", flex: 1 },
+								]}
 								onPress={() => {
-									Keyboard.dismiss();
-									setShowAddReviewModal(false);
-								}}>
-								<Text style={{ color: '#333', fontWeight: '600' }}>Cancel</Text>
+									Keyboard.dismiss()
+									setShowAddReviewModal(false)
+								}}
+							>
+								<Text style={{ color: "#333", fontWeight: "600" }}>Cancel</Text>
 							</TouchableOpacity>
 						</View>
 					</View>
 				</View>
 			</Modal>
 
-
 			<Modal
 				visible={showCamera}
-				animationType='slide'
+				animationType="slide"
 				transparent={false}
-				presentationStyle='fullScreen'>
+				presentationStyle="fullScreen"
+			>
 				<Camera
 					onImageCaptured={handleImageCaptured}
 					onClose={() => {
-						setShowCamera(false);
-						setShowAddReviewModal(true);
+						setShowCamera(false)
+						setShowAddReviewModal(true)
 					}}
 				/>
 			</Modal>
 		</View>
-	);
+	)
 }

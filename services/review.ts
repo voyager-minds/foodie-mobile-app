@@ -46,7 +46,7 @@ const addRestaurantReview = async (id: string, data: any) => {
 
 const getPreSignedUrl = async () => {
     try {
-        const response = await http.get(`/admin/uploads/presign`);
+        const response = await http.post(`/admin/uploads/presign`);
         return response;
     } catch (error) {
         console.error("Error getting presigned URL:", error);

@@ -1,4 +1,4 @@
-import { authService, AuthUser } from '@/services/auth';
+import { authService, AuthUser, createAuthLog } from '@/services/auth';
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 
 interface AuthContextType {
@@ -36,6 +36,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const currentUser = await authService.getCurrentUser();
         setUser(currentUser);
         setIsAuthenticated(true);
+        createAuthLog(currentUser);
       } else {
         setUser(null);
         setIsAuthenticated(false);
@@ -58,6 +59,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (result.success && result.user) {
         setUser(result.user);
         setIsAuthenticated(true);
+        createAuthLog(result.user);
       }
       
       return result;
@@ -76,6 +78,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (result.success && result.user) {
         setUser(result.user);
         setIsAuthenticated(true);
+        createAuthLog(result.user);
       }
       
       return result;
